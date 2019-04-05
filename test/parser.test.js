@@ -108,20 +108,20 @@ drwx------    2 1001     1001         4096 Oct 19 16:17 project2\r\n";
         time: +new Date("Oct 19 16:17 " + new Date().getFullYear()),
         owner: "1001",
         group: "1001",
-
+  
         userReadPerm: true,
         userWritePerm: true,
         userExecPerm: true,
-
+  
         groupReadPerm: false,
         groupWritePerm: false,
         groupExecPerm: false,
-
+  
         otherReadPerm: false,
         otherWritePerm: false,
         otherExecPerm: false
       }
-    ];
+      ];
 
     Parser.parseEntries(str, function(err, entryArray) {
       entryArray.forEach(function(entry, i) {
@@ -143,6 +143,8 @@ drwx------    2 1001     1001         4096 Oct 19 16:17 project2\r\n";
         assert.equal(unixEntries[i].otherReadPerm, entry.otherPermissions.read);
         assert.equal(unixEntries[i].otherWritePerm, entry.otherPermissions.write);
         assert.equal(unixEntries[i].otherExecPerm, entry.otherPermissions.exec);
+        
+        assert.equal(unixEntries[i].hasACL, entry.otherPermissions.hasACL);
       });
     })
   });
@@ -587,6 +589,85 @@ drwx------    2 1001     1001         4096 Oct 19 16:17 project2\r\n";
         assert.equal(unixEntries2[i].otherReadPerm, entry.otherPermissions.read);
         assert.equal(unixEntries2[i].otherWritePerm, entry.otherPermissions.write);
         assert.equal(unixEntries2[i].otherExecPerm, entry.otherPermissions.exec);
+      });
+    })
+  });
+
+  it("test unix extended attributes responses", function() {
+    var str = "-rwx--x---  10 mrclash  adm          4096 Aug  9 14:48 noExtendedAttributes\r\n\
+-rwx--x---.  10 mrclash  adm          4096 Aug  9 14:48 withExtendedAttributes\r\n";
+
+    var unixEntries = [
+      {
+        //line: "drwx--x---  10 mrclash  adm          4096 Aug  9 14:48 noExtendedAttributes",
+        type: 0,
+        size: 4096,
+        name: "noExtendedAttributes",
+        time: +new Date("Mar 9  2008"),
+        owner: "mrclash",
+        group: "adm",
+
+        userReadPerm: true,
+        userWritePerm: true,
+        userExecPerm: true,
+
+        groupReadPerm: false,
+        groupWritePerm: false,
+        groupExecPerm: true,
+
+        otherReadPerm: false,
+        otherWritePerm: false,
+        otherExecPerm: false,
+
+        hasACL: false,
+      },
+      {
+        //line: "drwx--x---  10 mrclash  adm          4096 Aug  9 14:48 withExtendedAttributes",
+        type: 0,
+        size: 4096,
+        name: "withExtendedAttributes",
+        time: +new Date("Aug  9  2010"),
+        owner: "mrclash",
+        group: "adm",
+
+        userReadPerm: true,
+        userWritePerm: true,
+        userExecPerm: true,
+
+        groupReadPerm: false,
+        groupWritePerm: false,
+        groupExecPerm: true,
+
+        otherReadPerm: false,
+        otherWritePerm: false,
+        otherExecPerm: false,
+
+        hasACL: true,
+      },
+    ];
+
+    Parser.parseEntries(str, function(err, entryArray) {
+      entryArray.forEach(function(entry, i) {
+        assert.equal(unixEntries[i].type, entry.type);
+        assert.equal(unixEntries[i].size, entry.size);
+        assert.equal(unixEntries[i].name, entry.name);
+        //assert.equal(unixEntries[i].time, entry.time);
+        assert.equal(unixEntries[i].owner, entry.owner);
+        assert.equal(unixEntries[i].group, entry.group);
+
+        assert.equal(unixEntries[i].userReadPerm, entry.userPermissions.read);
+        assert.equal(unixEntries[i].userWritePerm, entry.userPermissions.write);
+        assert.equal(unixEntries[i].userExecPerm, entry.userPermissions.exec);
+
+        assert.equal(unixEntries[i].groupReadPerm, entry.groupPermissions.read);
+        assert.equal(unixEntries[i].groupWritePerm, entry.groupPermissions.write);
+        assert.equal(unixEntries[i].groupExecPerm, entry.groupPermissions.exec);
+
+        assert.equal(unixEntries[i].otherReadPerm, entry.otherPermissions.read);
+        assert.equal(unixEntries[i].otherWritePerm, entry.otherPermissions.write);
+        assert.equal(unixEntries[i].otherExecPerm, entry.otherPermissions.exec);
+
+        assert.equal(unixEntries[i].hasACL, entry.hasACL);
       });
     })
   });

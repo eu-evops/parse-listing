@@ -24,11 +24,12 @@
  *        execution is on
  *    T   the 1000 bit is turned on, and execution is off (undefined bit-
  *        state)
+ *    . or +   indicates whether file has ACL set (http://git.savannah.gnu.org/cgit/coreutils.git/tree/src/ls.c?id=v8.21#n3785)
  */
 
 var RE_UnixEntry = new RegExp(
   "([bcdlfmpSs-])"
-    + "(((r|-)(w|-)([xsStTL-]))((r|-)(w|-)([xsStTL-]))((r|-)(w|-)([xsStTL-])))\\+?\\s+"
+    + "(((r|-)(w|-)([xsStTL-]))((r|-)(w|-)([xsStTL-]))((r|-)(w|-)([xsStTL-])))(?<hasACL>\\+|\\.)?\\s+"
     + "(\\d+)\\s+"
     + "(\\S+)\\s+"
     + "(?:(\\S+)\\s+)?"
@@ -183,24 +184,28 @@ var parsers = {
 
     if (group) {
       var type = group[1];
-      //var hardLinks = group[15];
-      var usr = group[16];
-      var grp = group[17];
-      var size = group[18];
-      var name = group[21];
+      
+      // http://git.savannah.gnu.org/cgit/coreutils.git/tree/src/ls.c?id=v8.21#n3785
+      var hasACL = group[15] != undefined;
+
+      //var hardLinks = group[16];
+      var usr = group[17];
+      var grp = group[18];
+      var size = group[19];
+      var name = group[22];
 
       var date;
       // Check whether we are given the time (recent file) or the year
       // (older file) in the file listing.
-      if (group[20].indexOf(":") === -1) {
-        date = +new Date(group[19] + " " + group[20]).getTime();
+      if (group[21].indexOf(":") === -1) {
+        date = +new Date(group[20] + " " + group[21]).getTime();
       }
       else {
         var currentMonth = new Date().getMonth();
-        var month = new Date(group[19]).getMonth();
+        var month = new Date(group[20]).getMonth();
         var year = new Date().getFullYear() - (currentMonth < month ? 1 : 0);
 
-        date = +new Date(group[19] + " " + group[20] + " " + year);
+        date = +new Date(group[20] + " " + group[21] + " " + year);
       }
 
       // Ignoring '.' and '..' entries for now
@@ -208,7 +213,7 @@ var parsers = {
         return;
       }
 
-      //var endtoken = group[22];
+      //var endtoken = group[23];
 
       switch (type[0]) {
         case 'd':
@@ -239,7 +244,8 @@ var parsers = {
         time: date,
         size: size,
         owner: usr,
-        group: grp
+        group: grp,
+        hasACL: hasACL,
       };
 
       if (target) file.target = target;
